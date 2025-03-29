@@ -10,7 +10,6 @@ echo Done
 
 # Use disko to configure disks
 echo "Run disko..."
-# TODO: I think the path to the actual disko-configl.nix is not being passed to disco correctly.
 set -l disko_config_path "$(realpath $(dirname $(status -f)))/disko-config.nix"
 nix run --extra-experimental-features nix-command --extra-experimental-features flakes github:nix-community/disko/v1.11.0 -- \
     --mode "destroy,format,mount" \

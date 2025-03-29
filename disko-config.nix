@@ -8,7 +8,10 @@
           content.type = "filesystem";
           content.format = "vfat";
           content.mountpoint = "/boot/efi";
-          content.extraArgs = ["-n" "ESP_${disk}"];
+          content.extraArgs = [
+            "-n"
+            "ESP_${disk}"
+          ];
         };
         zfs = {
           size = "100%";

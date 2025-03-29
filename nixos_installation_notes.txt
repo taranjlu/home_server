@@ -1,0 +1,35 @@
+# Need to set the password for the nixos user on the server in order to connect via ssh
+sudo passwd nixos
+
+# Enable ssh server on laptop to create reverse ssh tunnel
+sudo apt install openssh-server
+sudo systemctl start ssh
+sudo systemctl status ssh
+
+# Connect to server with reverse ssh tunnel
+ssh -R 2222:localhost:22 nixos@10.10.10.171
+
+# Enter shell with tools
+nix-shell -p nixfmt-rfc-style disko neovim ripgrep fish zellij zed-editor git nixd tree nil zellij jujutsu sshfs
+
+# Mount the usb drive
+# NOTE: Need to make sure root is able to access the mount properly.
+sudo mkdir -p /run/STORE_N_GO
+sudo sshfs -p 2222 -o allow_other taran@localhost:/media/taran/STORE_N_GO /run/STORE_N_GO
+
+# Setup the partitions
+cd /run/STORE_N_GO
+sudo fish run_disko.fish
+
+# Make the config dir
+sudo nixos-generate-config --root /mnt
+
+# Copy the config over
+sudo cp -r /run/media/nixos/STORE_N_GO/nixos_config/* /mnt/etc/nixos/
+
+# Install nix
+sudo nixos-install --root /mnt
+
+# Enter NixOS and update the password
+sudo nixos-enter --root /mnt
+passwd taran

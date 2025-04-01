@@ -25,6 +25,11 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
+  fileSystems."/" = {
+    device = "zpool-nixos/root";
+    fsType = "zfs";
+  };
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/ESP_SSD_0";
     fsType = "vfat";

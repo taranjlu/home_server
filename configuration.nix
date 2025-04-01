@@ -1,3 +1,7 @@
+# Edit this configuration file to define what should be installed on
+# your system. Help is available in the configuration.nix(5) man page, on
+# https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
+
 {
   config,
   lib,
@@ -6,43 +10,15 @@
 }:
 
 {
-  imports = [ ./hardware-configuration.nix ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
-  # Boot configuration
-  boot = {
-    supportedFilesystems = [ "zfs" ];
-    zfs = {
-      package = pkgs.zfs_unstable;
-      forceImportAll = true;
-      devNodes = "/dev/disk/by-id";
-    };
-
-    # Use GRUB instead of systemd-boot
-    loader = {
-      systemd-boot.enable = false;
-      efi.canTouchEfiVariables = true;
-      grub = {
-        enable = true;
-        device = "nodev";
-        efiSupport = true;
-        zfsSupport = true;
-      };
-    };
-
-    # ZFS unlock sequence
-    initrd = {
-      postDeviceCommands = ''
-        zfs load-key zpool-nixos/root/encrypted
-        zfs mount zpool-nixos/root
-        zfs mount zpool-nixos/boot
-        zfs mount zpool-nixos/root/encrypted/unlock
-      '';
-      postMountCommands = ''
-        zfs load-key -L file:///mnt/unlock/zfskey -a
-        zfs mount -a
-      '';
-    };
-  };
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.supportedFilesystems = [ "zfs" ];
 
   # ZFS specific configurations
   services.zfs = {
@@ -70,8 +46,7 @@
     isNormalUser = true;
     extraGroups = [
       "wheel"
-      "zfs"
-    ]; # Enable 'sudo' and ZFS management
+    ];
   };
 
   # Basic system packages
@@ -85,4 +60,5 @@
   services.openssh.enable = true;
 
   system.stateVersion = "24.11";
+
 }

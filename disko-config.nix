@@ -3,20 +3,24 @@
     let
       nixosPartitions = disk: {
         ESP = {
-          size = "512M";
+          size = "1G";
           type = "EF00";
-          content.type = "filesystem";
-          content.format = "vfat";
-          content.mountpoint = "/boot/efi";
-          content.extraArgs = [
-            "-n"
-            "ESP_${disk}"
-          ];
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            extraArgs = [
+              "-n"
+              "ESP_${disk}"
+            ];
+          };
         };
         zfs = {
           size = "100%";
-          content.type = "zfs";
-          content.pool = "zpool-nixos";
+          content = {
+            type = "zfs";
+            pool = "zpool-nixos";
+          };
         };
       };
 
@@ -139,11 +143,6 @@
             "root" = {
               # NOTE: Don't encrypt root dataset directly to allow flexibility later.
               type = "zfs_fs";
-              mountpoint = "/";
-            };
-            "boot" = {
-              type = "zfs_fs";
-              mountpoint = "/boot";
             };
             "root/encrypted" = {
               type = "zfs_fs";

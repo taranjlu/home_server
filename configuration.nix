@@ -49,6 +49,9 @@
     ];
   };
 
+  # Disable root login
+  users.users.root.hashedPassword = "!"; # Locked password
+
   # Basic system packages
   environment.systemPackages = with pkgs; [
     neovim

@@ -142,7 +142,9 @@
           datasets = {
             "root" = {
               # NOTE: Don't encrypt root dataset directly to allow flexibility later.
+              # NOTE: CRITICAL: This mountpoint must be set or everything breaks when nixos tries to install itself.
               type = "zfs_fs";
+              mountpoint = "/";
             };
             "root/encrypted" = {
               type = "zfs_fs";

@@ -54,6 +54,8 @@
 
   # Basic system packages
   environment.systemPackages = with pkgs; [
+    git
+    jujutsu
     neovim
     wget
     zfs

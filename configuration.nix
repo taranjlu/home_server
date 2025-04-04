@@ -20,6 +20,27 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "zfs" ];
 
+  # Unlock and mount all ZFS datasets after booting
+  systemd.services.zfs-unlock-datasets = {
+    description = "Import and unlock ZFS datasets";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "zfs.target"
+      "local-fs.target"
+    ];
+    requiredBy = [ "multi-user.target" ];
+    path = [ pkgs.zfs ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "zfs-unlock" ''
+        zpool import -af || true
+        zfs load-key -a || true
+        zfs mount -a || true
+      '';
+    };
+  };
+
   # ZFS specific configurations
   services.zfs = {
     autoScrub.enable = true;

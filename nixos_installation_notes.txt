@@ -31,5 +31,6 @@ sudo cp -r /run/media/nixos/STORE_N_GO/nixos_config/* /mnt/etc/nixos/
 sudo nixos-install --root /mnt
 
 # Enter NixOS and update the password
+# NOTE: CRITICAL: This must be done because the nix config disables logging in as the root user.
 sudo nixos-enter --root /mnt
 passwd taran

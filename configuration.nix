@@ -55,6 +55,43 @@
     };
   };
 
+  # Mirror the primary ESP to the secondary ESP
+  systemd.services.mirror-esp = {
+    description = "Mirror the primary ESP to the secondary ESP";
+    wants = [ "time-sync.target" ];
+    after = [ "time-sync.target" ];
+    path = with pkgs; [
+      mount
+      umount
+      rsync
+    ];
+
+    script = ''
+      mkdir -p /boot_mirror
+      mount /dev/disk/by-label/ESP_SSD_1 /boot_mirror
+      rsync -av --delete /boot/ /boot_mirror/
+      umount /boot_mirror
+      rmdir /boot_mirror
+    '';
+
+    serviceConfig = {
+      Type = "oneshot";
+      Nice = 19;
+      IOSchedulingClass = "idle";
+    };
+  };
+
+  systemd.timers.mirror-esp = {
+    description = "Timer for ESP mirroring";
+    wantedBy = [ "timers.target" ];
+
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+  };
+
   # Basic system configuration
   networking = {
     hostName = "guillo";

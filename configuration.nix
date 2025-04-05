@@ -112,9 +112,12 @@
 
   # Basic system packages
   environment.systemPackages = with pkgs; [
+    fd
+    fish
     git
     jujutsu
     neovim
+    ripgrep
     wget
     zfs
   ];

@@ -92,6 +92,18 @@
     };
   };
 
+  # Docker
+  virtualisation.docker = {
+    enable = true;
+    storageDriver = "zfs";
+    daemon.settings = {
+      data-root = "/zpool-ssd-raidz1-0/root/encrypted/containers/docker";
+      storage-opts = [
+        "zfs.fsname=zpool-ssd-raidz1-0/root/encrypted/containers/docker"
+      ];
+    };
+  };
+
   # Basic system configuration
   networking = {
     hostName = "guillo";
@@ -103,6 +115,7 @@
   users.users.taran = {
     isNormalUser = true;
     extraGroups = [
+      "docker"
       "wheel"
     ];
   };

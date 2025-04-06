@@ -100,6 +100,29 @@
     };
   };
 
+  # Docker Compose Services
+  systemd.services.docker-compose-services = {
+    description = "Docker Compose Services";
+    after = [ "docker.service" ];
+    requires = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.docker-compose ];
+
+    script = ''
+      cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose
+      for service in */; do
+        cd "$service"
+        docker-compose up -d
+        cd ..
+      done
+    '';
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+  };
+
   # Basic system configuration
   networking = {
     hostName = "guillo";

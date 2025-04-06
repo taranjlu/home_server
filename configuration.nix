@@ -125,8 +125,11 @@
     fish
     git
     jujutsu
+    macchina
     neovim
     ripgrep
+    tldr
+    tree
     wget
     zfs
   ];

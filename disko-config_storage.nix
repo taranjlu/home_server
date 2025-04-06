@@ -121,6 +121,16 @@
             "root/encrypted/containers/docker" = {
               type = "zfs_fs";
             };
+            "root/encrypted/containers/docker-compose" = {
+              type = "zfs_fs";
+              options = {
+                recordsize = "8K";
+                compression = "zstd";
+                copies = "2";
+                xattr = "sa";
+                atime = "off";
+              };
+            };
             "root/encrypted/vms" = {
               type = "zfs_fs";
               options = {

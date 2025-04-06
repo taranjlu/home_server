@@ -58,8 +58,6 @@
   # Mirror the primary ESP to the secondary ESP
   systemd.services.mirror-esp = {
     description = "Mirror the primary ESP to the secondary ESP";
-    wants = [ "time-sync.target" ];
-    after = [ "time-sync.target" ];
     path = with pkgs; [
       mount
       umount
@@ -81,14 +79,12 @@
     };
   };
 
-  systemd.timers.mirror-esp = {
-    description = "Timer for ESP mirroring";
-    wantedBy = [ "timers.target" ];
-
-    timerConfig = {
-      OnCalendar = "daily";
-      Persistent = true;
-      RandomizedDelaySec = "1h";
+  systemd.paths.mirror-esp = {
+    description = "Watch /boot/loader/entries for changes to trigger ESP mirroring";
+    wantedBy = [ "multi-user.target" ];
+    pathConfig = {
+      PathChanged = "/boot/loader/entries";
+      Unit = "mirror-esp.service";
     };
   };
 

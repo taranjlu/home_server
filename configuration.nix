@@ -127,6 +127,7 @@
     jujutsu
     macchina
     neovim
+    pwgen
     ripgrep
     tldr
     tree

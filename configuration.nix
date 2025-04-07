@@ -88,6 +88,9 @@
     };
   };
 
+  # Enable tailscale service
+  services.tailscale.enable = true;
+
   # Docker
   virtualisation.docker = {
     enable = true;
@@ -161,6 +164,7 @@
     neovim
     pwgen
     ripgrep
+    tailscale
     tldr
     tree
     wget

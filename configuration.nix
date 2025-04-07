@@ -89,7 +89,21 @@
   };
 
   # Enable tailscale service
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    authKeyFile = "/var/lib/tailscale/${config.networking.hostName}_authkey";
+  };
+
+  # Create directory and placeholder key file
+  system.activationScripts.tailscale-auth = ''
+    mkdir -p /var/lib/tailscale
+    chmod 0700 /var/lib/tailscale
+
+    if [ ! -f /var/lib/tailscale/${config.networking.hostName}_authkey ]; then
+      echo "# Replace with your Tailscale auth key" > /var/lib/tailscale/${config.networking.hostName}_authkey
+      chmod 0600 /var/lib/tailscale/${config.networking.hostName}_authkey
+    fi
+  '';
 
   # Docker
   virtualisation.docker = {

@@ -39,3 +39,6 @@ passwd taran
 
 # Further updates to zfs config via run_disko
 sudo nix run --extra-experimental-features nix-command --extra-experimental-features flakes github:nix-community/disko/v1.11.0 -- --mode "format,mount" ./disko-config_storage.nix
+
+# DON'T USE DISKO ANYMORE!
+# Was fine for inital setup but became too cumbersome. Just directly use zfs commands to tweak further.

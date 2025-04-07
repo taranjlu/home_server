@@ -92,6 +92,10 @@
   virtualisation.docker = {
     enable = true;
     storageDriver = "zfs";
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+    };
     daemon.settings = {
       data-root = "/zpool-ssd-raidz1-0/root/encrypted/containers/docker";
       storage-opts = [

@@ -110,10 +110,15 @@
 
     script = ''
       cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose
-      for service in */; do
-        cd "$service"
-        docker-compose up -d
-        cd ..
+      services=("portainer")
+      for service in "''${services[@]}"; do
+        if [ -d "$service" ]; then
+          cd "$service"
+          docker-compose up -d
+          cd ..
+        else
+          echo "Warning: Service directory $service not found"
+        fi
       done
     '';
 

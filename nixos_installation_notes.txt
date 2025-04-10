@@ -42,3 +42,6 @@ sudo nix run --extra-experimental-features nix-command --extra-experimental-feat
 
 # DON'T USE DISKO ANYMORE!
 # Was fine for inital setup but became too cumbersome. Just directly use zfs commands to tweak further.
+
+# Vault Setup
+# Had to manually initialize the vault and use gpg to encrypt the keys

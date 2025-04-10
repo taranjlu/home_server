@@ -20,6 +20,11 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "zfs" ];
 
+  # Set zfs arc size
+  boot.kernelParams = [
+    "zfs.zfs_arc_max=103079215104"
+  ];
+
   # Unlock and mount all ZFS datasets after booting
   systemd.services.zfs-unlock-datasets = {
     description = "Import and unlock ZFS datasets";
@@ -94,7 +99,7 @@
     authKeyFile = "/var/lib/tailscale/${config.networking.hostName}_authkey";
   };
 
-  # Create directory and placeholder key file
+  # Create tailscale directory and placeholder key file
   system.activationScripts.tailscale-auth = ''
     mkdir -p /var/lib/tailscale
     chmod 0700 /var/lib/tailscale
@@ -104,6 +109,57 @@
       chmod 0600 /var/lib/tailscale/${config.networking.hostName}_authkey
     fi
   '';
+
+  # Enable Vault for secrets management
+  services.vault = {
+    enable = true;
+    dev = false; # Disable dev mode
+    storageBackend = "file";
+    storagePath = "/var/lib/vault/data"; # Persistent storage directory
+    address = "127.0.0.1:8200"; # Listen address
+    extraConfig = ''
+      ui = true # Optional: enables the web UI
+      api_addr = "http://127.0.0.1:8200" # API address for clients
+      cluster_addr = "http://127.0.0.1:8201" # For clustering (not needed here, but required)
+    '';
+  };
+
+  # Persist encrypted keys (owned by taran for now)
+  systemd.tmpfiles.rules = [
+    "d /var/lib/vault/data 0700 vault vault - -"
+    "f /var/lib/vault/unseal-keys.txt.gpg 0600 taran users - -"
+  ];
+
+  # Unseal script as taran
+  environment.etc."vault-unseal.sh" = {
+    text = ''
+      #!${pkgs.bash}/bin/bash
+      export VAULT_ADDR="http://127.0.0.1:8200"
+      KEYS="$(${pkgs.gnupg}/bin/gpg --yes --batch --decrypt /var/lib/vault/unseal-keys.txt.gpg)"
+      KEY1=$(echo "$KEYS" | grep "Unseal Key 1" | cut -d':' -f2 | tr -d ' ')
+      KEY2=$(echo "$KEYS" | grep "Unseal Key 2" | cut -d':' -f2 | tr -d ' ')
+      KEY3=$(echo "$KEYS" | grep "Unseal Key 3" | cut -d':' -f2 | tr -d ' ')
+      ${pkgs.vault}/bin/vault operator unseal "$KEY1"
+      ${pkgs.vault}/bin/vault operator unseal "$KEY2"
+      ${pkgs.vault}/bin/vault operator unseal "$KEY3"
+    '';
+    mode = "0700";
+    user = "taran";
+  };
+
+  # Systemd service as taran
+  systemd.services.vault-unseal = {
+    description = "Unseal Vault on Startup";
+    after = [ "vault.service" ];
+    requires = [ "vault.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "/etc/vault-unseal.sh";
+      User = "taran"; # Run as taran instead of vault
+      RemainAfterExit = "yes";
+    };
+  };
 
   # Docker
   virtualisation.docker = {
@@ -168,22 +224,38 @@
   # Disable root login
   users.users.root.hashedPassword = "!"; # Locked password
 
+  # Allow specific unfree packages
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "vault"
+    ];
+
   # Basic system packages
   environment.systemPackages = with pkgs; [
     fd
     fish
+    gnupg
     git
     jujutsu
     macchina
     neovim
+    pinentry-tty
     pwgen
     ripgrep
     tailscale
     tldr
     tree
+    vault
     wget
     zfs
   ];
+
+  # Tell GPG to use pinentry-tty
+  programs.gnupg.agent = {
+    enable = true;
+    pinentryPackage = pkgs.pinentry-tty;
+  };
 
   # Enable SSH server
   services.openssh.enable = true;

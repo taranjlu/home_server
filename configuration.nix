@@ -158,6 +158,12 @@
       ExecStart = "/etc/vault-unseal.sh";
       User = "taran"; # Run as taran instead of vault
       RemainAfterExit = "yes";
+      Restart = "on-failure";
+      RestartSec = "3s";
+    };
+    unitConfig = {
+      StartLimitIntervalSec = "15s";
+      StartLimitBurst = "5";
     };
   };
 

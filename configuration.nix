@@ -235,14 +235,16 @@
   environment.systemPackages = with pkgs; [
     fd
     fish
-    gnupg
+    ghostty # Add for ghostty terminfo.
     git
+    gnupg
     jujutsu
     macchina
     neovim
     pinentry-tty
     pwgen
     ripgrep
+    ripgrep-all
     tailscale
     tldr
     tree

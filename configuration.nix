@@ -127,14 +127,16 @@
   # Persist encrypted keys (owned by taran for now)
   systemd.tmpfiles.rules = [
     "d /var/lib/vault/data 0700 vault vault - -"
-    "f /var/lib/vault/unseal-keys.txt.gpg 0600 taran users - -"
+    "f /var/lib/vault/unseal-keys.txt.gpg 0600 root root - -"
   ];
 
-  # Unseal script as taran
+  # Vault unseal script
+  # NOTE: Use taran key since that is what was used to encrypt.
   environment.etc."vault-unseal.sh" = {
     text = ''
       #!${pkgs.bash}/bin/bash
       export VAULT_ADDR="http://127.0.0.1:8200"
+      export GNUPGHOME="/home/taran/.gnupg"  # Use taran's GPG home
       KEYS="$(${pkgs.gnupg}/bin/gpg --yes --batch --decrypt /var/lib/vault/unseal-keys.txt.gpg)"
       KEY1=$(echo "$KEYS" | grep "Unseal Key 1" | cut -d':' -f2 | tr -d ' ')
       KEY2=$(echo "$KEYS" | grep "Unseal Key 2" | cut -d':' -f2 | tr -d ' ')
@@ -144,19 +146,20 @@
       ${pkgs.vault}/bin/vault operator unseal "$KEY3"
     '';
     mode = "0700";
-    user = "taran";
   };
 
-  # Systemd service as taran
+  # Systemd vault unseal service
   systemd.services.vault-unseal = {
     description = "Unseal Vault on Startup";
     after = [ "vault.service" ];
     requires = [ "vault.service" ];
     wantedBy = [ "multi-user.target" ];
+    path = [
+      pkgs.getent
+    ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "/etc/vault-unseal.sh";
-      User = "taran"; # Run as taran instead of vault
       RemainAfterExit = "yes";
       Restart = "on-failure";
       RestartSec = "3s";
@@ -184,32 +187,47 @@
   };
 
   # Docker Compose Services
-  systemd.services.docker-compose-services = {
-    description = "Docker Compose Services";
-    after = [ "docker.service" ];
-    requires = [ "docker.service" ];
-    wantedBy = [ "multi-user.target" ];
-    path = [ pkgs.docker-compose ];
+  # systemd.services.docker-compose-services = {
+  #   description = "Docker Compose Services";
+  #   after = [
+  #     "docker.service"
+  #     "vault-unseal.service"
+  #   ];
+  #   requires = [
+  #     "docker.service"
+  #     "vault-unseal.service"
+  #   ];
+  #   wantedBy = [ "multi-user.target" ];
+  #   path = [
+  #     pkgs.docker-compose
+  #     pkgs.vault
+  #     pkgs.getent
+  #   ];
+  #   environment = {
+  #     VAULT_ADDR = "http://127.0.0.1:8200";
+  #   };
 
-    script = ''
-      cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose
-      services=("portainer")
-      for service in "''${services[@]}"; do
-        if [ -d "$service" ]; then
-          cd "$service"
-          docker-compose up -d
-          cd ..
-        else
-          echo "Warning: Service directory $service not found"
-        fi
-      done
-    '';
+  #   script = ''
+  #     cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose/compose-files
+  #     services=("immich")
+  #     secrets_script=".secrets.sh"
+  #     for service in "''${services[@]}"; do
+  #       if [ -d "$service" ]; then
+  #         cd "$service"
+  #         test -f "$secrets_script" && . "$secrets_script" || echo "Warning: No secrets script not found."
+  #         docker-compose up -d
+  #         cd ..
+  #       else
+  #         echo "Warning: Service directory $service not found"
+  #       fi
+  #     done
+  #   '';
 
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-  };
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     RemainAfterExit = true;
+  #   };
+  # };
 
   # Basic system configuration
   networking = {

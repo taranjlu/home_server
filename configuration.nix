@@ -210,7 +210,7 @@
 
     script = ''
       cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose/compose-files
-      services=("immich")
+      services=("immich", "pihole")
       secrets_script=".secrets.sh"
       for service in "''${services[@]}"; do
         if [ -d "$service" ]; then

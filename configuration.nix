@@ -187,47 +187,48 @@
   };
 
   # Docker Compose Services
-  # systemd.services.docker-compose-services = {
-  #   description = "Docker Compose Services";
-  #   after = [
-  #     "docker.service"
-  #     "vault-unseal.service"
-  #   ];
-  #   requires = [
-  #     "docker.service"
-  #     "vault-unseal.service"
-  #   ];
-  #   wantedBy = [ "multi-user.target" ];
-  #   path = [
-  #     pkgs.docker-compose
-  #     pkgs.vault
-  #     pkgs.getent
-  #   ];
-  #   environment = {
-  #     VAULT_ADDR = "http://127.0.0.1:8200";
-  #   };
+  systemd.services.docker-compose-services = {
+    description = "Docker Compose Services";
+    after = [
+      "docker.service"
+      "vault-unseal.service"
+    ];
+    requires = [
+      "docker.service"
+      "vault-unseal.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    path = [
+      pkgs.docker-compose
+      pkgs.vault
+      pkgs.getent
+    ];
+    environment = {
+      VAULT_ADDR = "http://127.0.0.1:8200";
+      VALUT_TOKEN = "/root/.vault-token";
+    };
 
-  #   script = ''
-  #     cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose/compose-files
-  #     services=("immich")
-  #     secrets_script=".secrets.sh"
-  #     for service in "''${services[@]}"; do
-  #       if [ -d "$service" ]; then
-  #         cd "$service"
-  #         test -f "$secrets_script" && . "$secrets_script" || echo "Warning: No secrets script not found."
-  #         docker-compose up -d
-  #         cd ..
-  #       else
-  #         echo "Warning: Service directory $service not found"
-  #       fi
-  #     done
-  #   '';
+    script = ''
+      cd /zpool-ssd-raidz1-0/root/encrypted/containers/docker-compose/compose-files
+      services=("immich")
+      secrets_script=".secrets.sh"
+      for service in "''${services[@]}"; do
+        if [ -d "$service" ]; then
+          cd "$service"
+          test -f "$secrets_script" && . "$secrets_script" || echo "Warning: No secrets script not found."
+          docker-compose up -d
+          cd ..
+        else
+          echo "Warning: Service directory $service not found"
+        fi
+      done
+    '';
 
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     RemainAfterExit = true;
-  #   };
-  # };
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+  };
 
   # Basic system configuration
   networking = {
